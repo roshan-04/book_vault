@@ -70,6 +70,12 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white, size: 30,),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: Text(
           "Search Books",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),

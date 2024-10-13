@@ -23,81 +23,60 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
   }
 
   void _fetchBorrowedBooks(String userId) async {
-    try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('student')
-          .doc(userId)
+    final snapshot = await FirebaseFirestore.instance
+        .collection('student')
+        .doc(userId)
+        .get();
+
+    final studentData = snapshot.data() as Map<String, dynamic>;
+
+    for (var borrowRef in studentData['borrowsREL']) {
+      var borrowsnapshot = await borrowRef.get();
+      final borrowsdata = borrowsnapshot.data() as Map<String, dynamic>;
+
+      var booksnapshot = await borrowsdata['ISBNID'].get();
+      var recordsnapshot = await borrowsdata['recordID'].get();
+
+      final bookdata = booksnapshot.data() as Map<String, dynamic>;
+      final recordsdata = recordsnapshot.data() as Map<String, dynamic>;
+      String recordID = recordsdata['recordID'];
+
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('fine')
+          .where('recordID', isEqualTo: recordID)
           .get();
 
-      if (snapshot.exists) {
-        final studentData = snapshot.data() as Map<String, dynamic>?;
+      var finedata = 0;
 
-        if (studentData != null && studentData['borrowsREL'] is List) {
-          List<Future<DocumentSnapshot>> borrowFutures = [];
+      if (querySnapshot.docs.isNotEmpty) {
 
-          for (var borrowRef in studentData['borrowsREL']) {
-            if (borrowRef is DocumentReference) {
-              borrowFutures.add(borrowRef.get());
-            } else {
-              print('Unexpected type in borrowsREL: ${borrowRef.runtimeType}');
-            }
-          }
+        var doc = querySnapshot.docs[0];
 
-          final borrowSnapshots = await Future.wait(borrowFutures);
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        finedata = data['fineAMT'];
 
-          for (var borrowsnapshot in borrowSnapshots) {
-            if (borrowsnapshot.exists) {
-              final borrowsdata = borrowsnapshot.data() as Map<String, dynamic>?;
-
-              if (borrowsdata != null) {
-                final DocumentReference isbnRef = borrowsdata['ISBNID'] as DocumentReference;
-                final DocumentReference recordRef = borrowsdata['recordID'] as DocumentReference;
-
-                var bookFuture = isbnRef.get();
-                var recordFuture = recordRef.get();
-
-                var results = await Future.wait([bookFuture, recordFuture]);
-                var booksnapshot = results[0];
-                var recordsnapshot = results[1];
-
-                if (booksnapshot.exists && recordsnapshot.exists) {
-                  final bookdata = booksnapshot.data() as Map<String, dynamic>?;
-                  final recordsdata = recordsnapshot.data() as Map<String, dynamic>?;
-
-                  if (bookdata != null && recordsdata != null) {
-                    String? imageUrl;
-                    if (bookdata['bookimg'] != null) {
-                      imageUrl = await FirebaseStorage.instance
-                          .ref(bookdata['bookimg'])
-                          .getDownloadURL();
-                    }
-
-                    books.add({
-                      'title': bookdata['title'],
-                      'borrowDate': recordsdata['borrowdate'],
-                      'dueDate': recordsdata['duedate'],
-                      'Fine': '0',
-                      'imageUrl': imageUrl, // Add individual image URL for each book
-                    });
-                  }
-                }
-              }
-            } else {
-              print('No book found for borrow document reference: ${borrowsnapshot.reference}');
-            }
-          }
-
-          setState(() {});
-        } else {
-          print('No borrowed books found for student.');
-        }
       } else {
-        print('No such student!');
+        print('No document found with the specified recordID.');
       }
-    } catch (e) {
-      print('Error fetching borrowed books: $e');
+
+      String imageUrl = await FirebaseStorage.instance
+          .ref(bookdata['bookimg'])
+          .getDownloadURL();
+
+      books.add({
+        'title': bookdata['title'],
+        'borrowDate': recordsdata['borrowdate'],
+        'dueDate': recordsdata['duedate'],
+        'Fine': '0',
+        'imageUrl': imageUrl,
+        'fine': finedata,
+      });
     }
+
+    setState(() {});
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +156,7 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
                             ),
                           ),
                           Text(
-                            'Total Fine: ${book['Fine'] ?? ''}',
+                            'Total Fine: ${book['fine'] ?? ''}',
                             style: TextStyle(
                               fontSize: 16 * textScaleFactor,
                               color: Colors.blueGrey,

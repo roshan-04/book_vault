@@ -72,31 +72,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: Container(
         // Add a gradient background
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade600, Colors.blue.shade300],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color:  Colors.blueAccent,
         ),
         padding: EdgeInsets.all(screenWidth * 0.04),
         child: ListView(
           children: [
-            Center(
-              child: Container(
-                height: screenWidth * 0.55,
-                width: screenWidth * 0.65,
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
+            Padding(
+              padding: EdgeInsets.only(top: screenHeight * 0.025),
+              child: Center(
+                child: Container(
+                  height: screenWidth * 0.55,
+                  width: screenWidth * 0.65,
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 15,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                    borderRadius: BorderRadius.all(Radius.circular(screenWidth * 0.08)),
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/profile2.png'),
+                      fit: BoxFit.cover,
                     ),
-                  ],
-                  borderRadius: BorderRadius.all(Radius.circular(screenWidth * 0.08)),
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/profile2.png'),
-                    fit: BoxFit.cover,
                   ),
                 ),
               ),

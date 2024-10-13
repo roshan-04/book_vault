@@ -426,13 +426,5 @@ PreferredSizeWidget CustomAppbar(GlobalKey<ScaffoldState> scaffoldKey) {
           scaffoldKey.currentState!.openDrawer();
         },
       ),
-      actions: <Widget>[
-        IconButton(
-          icon: Icon(Icons.search, color: kwhite,size: 30),
-          onPressed: () {
-            // Search action
-          },
-        ),
-      ]
   );
 }
