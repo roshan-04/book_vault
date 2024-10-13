@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:book_vault/widgets/elevatedButton.dart';
+import 'confirmationScreen.dart';
 
 class BookDetailScreen extends StatefulWidget {
   final Map<String, dynamic> book;
@@ -102,6 +103,53 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     }
   }
 
+  Future<bool> _borrowBook() async {
+    if (widget.book['availability'] >= 1) {
+
+      CollectionReference records = FirebaseFirestore.instance.collection('record');
+      CollectionReference fines = FirebaseFirestore.instance.collection('fine');
+      CollectionReference staff = FirebaseFirestore.instance.collection('staff');
+
+      DocumentReference studentRef = FirebaseFirestore.instance
+            .collection('student')
+            .doc(userId);
+
+      DocumentReference bookRef = FirebaseFirestore.instance
+              .collection('book')
+              .doc(widget.book['isbn']);
+
+      DocumentReference docRef = records.doc();
+      DocumentReference fineRef = fines.doc();
+
+      await docRef.set({
+        'recordID': docRef.id,
+        'borrowdate': "00/00/0000",
+        'duedate': "00/00/0000",
+        'bookID': bookRef,
+        'studentID': studentRef,
+      });
+
+      await fineRef.set({
+      'fineAMT': 0,
+      'fineexcessAMT': 0,
+      'finepaydate': FieldValue.serverTimestamp(),
+      'recordID': docRef.id
+      });
+
+      await FirebaseFirestore.instance.collection('book').doc(widget.book['isbn']).update({
+        'availability': FieldValue.increment(-1),
+      });
+
+      DocumentReference staffRef = staff.doc('3u6dRZrnMcNXDWwojFht1CXuYv12');
+      await staffRef.update({
+        'managesREL': FieldValue.arrayUnion([docRef]),
+      });
+      return true;
+    } else {
+      // Handle case where the book is not available
+      return false;
+    }
+  }
 
 
  @override
@@ -265,26 +313,32 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CustomElevatedButton(
-                          onPressed: () {
-                            // Implement your borrow logic here
-                          },
-                          text: "Borrow",
-                          textStyle: TextStyle(
-                            fontSize: 18,
-                            fontFamily: 'Roboto',
-                            color: Colors.white,
-                          ),
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                        ),
-                        SizedBox(height: 17),
-                      ],
+                    CustomElevatedButton(
+                      onPressed: () async {
+                        bool success = await _borrowBook();
+                        String displayText;
+                        if (success) {
+                          displayText = "Processing Request\nCheck borrowed \nbooks";
+                        } else {
+                          displayText = "This Book is not \n Available";
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ConfirmationScreen(displayText: displayText)),
+                        );
+                        await Future.delayed(Duration(seconds: 8));
+                        Navigator.pop(context);
+                      },
+                      text: "Borrow",
+                      textStyle: TextStyle(
+                        fontSize: 18,
+                        fontFamily: 'Roboto',
+                        color: Colors.white,
+                      ),
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
                     ),
+
                   ],
                 ),
               ),
