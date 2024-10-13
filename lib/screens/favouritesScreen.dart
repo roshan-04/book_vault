@@ -3,12 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
-class BorrowedBooksScreen extends StatefulWidget {
+class FavouritesScreen extends StatefulWidget {
   @override
-  _BorrowedBooksScreenState createState() => _BorrowedBooksScreenState();
+  _FavouriteBooksScreenState createState() => _FavouriteBooksScreenState();
 }
 
-class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
+class _FavouriteBooksScreenState extends State<FavouritesScreen> {
   final User? user = FirebaseAuth.instance.currentUser;
   List<Map<String, dynamic>> books = [];
   bool _isLoading = true;
@@ -17,72 +17,51 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
   void initState() {
     super.initState();
     if (user != null) {
-      _fetchBorrowedBooks(user!.uid);
+      _fetchFavouritedBooks(user!.uid);
     } else {
       print('No user is currently logged in.');
     }
   }
 
-  void _fetchBorrowedBooks(String userId) async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('student')
-        .doc(userId)
-        .get();
+  void _fetchFavouritedBooks(String userId) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('favourite')
+          .doc(userId)
+          .get();
 
-    final studentData = snapshot.data() as Map<String, dynamic>;
+      final favouriteData = snapshot.data() as Map<String, dynamic>;
 
-    List<Future<Map<String, dynamic>>> borrowFutures = [];
+      List<Future<Map<String, dynamic>>> bookFutures = [];
 
-    for (var borrowRef in studentData['borrowsREL']) {
-      borrowFutures.add(_fetchBorrowAndBookData(borrowRef));
+      for (var bookRef in favouriteData['books']) {
+        bookFutures.add(_fetchBookData(bookRef));
+      }
+
+      List<Map<String, dynamic>> allBooks = await Future.wait(bookFutures);
+      books.addAll(allBooks);
+    } catch (e) {
+      print('Error fetching favourite books: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-
-    List<Map<String, dynamic>> allBooks = await Future.wait(borrowFutures);
-
-    books.addAll(allBooks);
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
-  Future<Map<String, dynamic>> _fetchBorrowAndBookData(DocumentReference borrowRef) async {
-    var borrowsnapshot = await borrowRef.get();
-    final borrowsdata = borrowsnapshot.data() as Map<String, dynamic>;
-
-    var bookFuture = borrowsdata['ISBNID'].get();
-    var recordFuture = borrowsdata['recordID'].get();
-
-    var booksnapshot = await bookFuture;
-    var recordsnapshot = await recordFuture;
-
+  Future<Map<String, dynamic>> _fetchBookData(DocumentReference bookRef) async {
+    var booksnapshot = await bookRef.get();
     final bookdata = booksnapshot.data() as Map<String, dynamic>;
-    final recordsdata = recordsnapshot.data() as Map<String, dynamic>;
-
-    String recordID = recordsdata['recordID'];
-
-    final fineQuerySnapshot = await FirebaseFirestore.instance
-        .collection('fine')
-        .where('recordID', isEqualTo: recordID)
-        .get();
-
-    var finedata = 0;
-
-    if (fineQuerySnapshot.docs.isNotEmpty) {
-      var fineDoc = fineQuerySnapshot.docs[0];
-      finedata = fineDoc.data()?['fineAMT'] ?? 0;
-    }
-
     String imageUrl = await FirebaseStorage.instance
         .ref(bookdata['bookimg'])
         .getDownloadURL();
 
     return {
       'title': bookdata['title'],
-      'borrowDate': recordsdata['borrowdate'],
-      'dueDate': recordsdata['duedate'],
+      'authorName': bookdata['authorName'],
+      'edition': bookdata['edition'],
       'imageUrl': imageUrl,
-      'fine': finedata,
+      'genre': bookdata['genre'],
     };
   }
 
@@ -100,10 +79,7 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
             Navigator.pop(context);
           },
         ),
-        title: Text(
-          'Borrowed Books',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text('Favourited Books', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: _isLoading
@@ -117,7 +93,7 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
         child: books.isEmpty
             ? Center(
           child: Text(
-            'No borrowed books found.',
+            'No books favourited :)',
             style: TextStyle(
               fontSize: 20 * textScaleFactor,
               color: Colors.blueGrey,
@@ -128,9 +104,9 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
           itemCount: books.length,
           itemBuilder: (context, index) {
             final book = books[index];
-
             return Card(
-              margin: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+              margin: EdgeInsets.symmetric(
+                  vertical: screenHeight * 0.01),
               elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -156,21 +132,21 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
                           ),
                           SizedBox(height: screenHeight * 0.01),
                           Text(
-                            'Borrowed: ${book['borrowDate'] ?? ''}',
+                            'Author: ${book['authorName'] ?? ''}',
                             style: TextStyle(
                               fontSize: 16 * textScaleFactor,
                               color: Colors.blueGrey,
                             ),
                           ),
                           Text(
-                            'Due Date: ${book['dueDate'] ?? ''}',
+                            'Edition: ${book['edition'] ?? ''}',
                             style: TextStyle(
                               fontSize: 16 * textScaleFactor,
                               color: Colors.blueGrey,
                             ),
                           ),
                           Text(
-                            'Total Fine: ${book['fine'] ?? ''}',
+                            'Genre: ${book['genre'] ?? ''}',
                             style: TextStyle(
                               fontSize: 16 * textScaleFactor,
                               color: Colors.blueGrey,
@@ -189,11 +165,12 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
                           height: screenHeight * 0.15,
                           width: screenWidth * 0.25,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Icon(
-                            Icons.broken_image,
-                            size: screenHeight * 0.15,
-                            color: Colors.grey,
-                          ),
+                          errorBuilder: (context, error, stackTrace) =>
+                              Icon(
+                                Icons.broken_image,
+                                size: screenHeight * 0.15,
+                                color: Colors.grey,
+                              ),
                         ),
                       ),
                     ),

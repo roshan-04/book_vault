@@ -280,7 +280,9 @@ class _LoginScreenState extends State<LogInScreen> {
                                     SizedBox(height: screenHeight * 0.02 ),
 
                                     _isLoading
-                                        ? const CircularProgressIndicator() // Show loading indicator
+                                        ? const CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(kdarkblue),
+                                    ) // Show loading indicator
                                         : CustomElevatedButton(
                                       onPressed: _login,
                                       backgroundColor: kblack,

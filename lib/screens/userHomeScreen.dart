@@ -6,6 +6,7 @@ import 'profileScreen.dart';
 import 'package:book_vault/screens/logInScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'favouritesScreen.dart';
 import 'search.dart';
 
 class UserHomeScreen extends StatefulWidget {
@@ -129,7 +130,12 @@ Widget CustomDrawer (BuildContext context) {
                     ),
                     child: ListTile(
                       onTap: () {
-                        print("Favourites tapped");
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FavouritesScreen(),
+                          ),
+                        );
                       },
                       leading: Icon(Icons.favorite, color: Colors.white),
                       title: Text(
