@@ -555,7 +555,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 SizedBox(height: screenHeight * 0.03),
 
                 _isLoading
-                ? CircularProgressIndicator() // Show loading indicator
+                ? CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                ) // Show loading indicator
                     : Container(
                 height: screenHeight * 0.06,
                 width: screenWidth,
@@ -933,7 +935,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 SizedBox(height: screenHeight * 0.02),
 
                 _isLoading
-                    ? CircularProgressIndicator() // Show loading indicator
+                    ? CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                ) // Show loading indicator
                     : Container(
                   height: screenHeight * 0.06,
                   width: screenWidth,

@@ -108,7 +108,9 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
             SizedBox(height: 20),
             // Display loading spinner while fetching data
             isLoading
-                ? Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            ))
                 : SearchResult(),
           ],
         ),
