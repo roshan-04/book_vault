@@ -1,5 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // Add Firebase storage import
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:book_vault/widgets/elevatedButton.dart';
 
 class BookDetailScreen extends StatefulWidget {
   final Map<String, dynamic> book;
@@ -12,17 +16,18 @@ class BookDetailScreen extends StatefulWidget {
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
   bool isFavorited = false;
-  String? imageUrl; // To store the image URL
+  String? imageUrl;
+  String userId = FirebaseAuth.instance.currentUser!.uid;
 
   @override
   void initState() {
+    _loadImage();
     super.initState();
-    _loadImage(); // Fetch image on screen load
+    _checkIfFavorited();
   }
 
   Future<void> _loadImage() async {
     try {
-      // Get the download URL from Firebase Storage
       String url = await FirebaseStorage.instance
           .ref(widget.book['bookimg'])
           .getDownloadURL();
@@ -34,25 +39,79 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     }
   }
 
-  void toggleFavorite() {
+  Future<void> _toggleFavorite() async {
+    DocumentReference userRef = FirebaseFirestore.instance
+        .collection('favourite')
+        .doc(userId);
+    DocumentReference bookRef = FirebaseFirestore.instance
+        .collection('book')
+        .doc(widget.book['isbn']);
+
     setState(() {
       isFavorited = !isFavorited;
     });
 
-    final snackBar = SnackBar(
-      content: Text(
-          isFavorited ? 'Added to favorites' : 'Removed from favorites'),
-      duration: Duration(seconds: 1),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    DocumentSnapshot userDoc = await userRef.get();
+    if (!userDoc.exists) {
+      await userRef.set({
+        'books': [],
+      });
+    }
+
+    if (isFavorited) {
+      await userRef.update({
+        'books': FieldValue.arrayUnion([bookRef]),
+        // Add book to favorites
+      });
+      final snackBar = SnackBar(
+        content: Text('Added to favorites'),
+        duration: Duration(seconds: 1),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    } else {
+      await userRef.update({
+        'books': FieldValue.arrayRemove([bookRef]),
+        // Remove book from favorites
+      });
+      final snackBar = SnackBar(
+        content: Text('Removed from favorites'),
+        duration: Duration(seconds: 1),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
   }
 
-  @override
+  Future<void> _checkIfFavorited() async {
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('favourite')
+        .doc(userId)
+        .get();
+
+    if (userDoc.exists) {
+      List<dynamic> favorites = userDoc['books'] ?? [];
+
+      DocumentReference bookRef = FirebaseFirestore.instance
+          .collection('book')
+          .doc(widget.book['isbn']);
+
+      if (favorites.any((ref) => ref.path == bookRef.path)) {
+        setState(() {
+          isFavorited = true;
+        });
+      }
+    }
+  }
+
+
+
+ @override
   Widget build(BuildContext context) {
+   double screenWidth = MediaQuery.of(context).size.width;
+   double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white, size: 30,),
+          icon: Icon(Icons.arrow_back, color: Colors.white, size: 30),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -92,207 +151,193 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                     errorBuilder: (context, error, stackTrace) =>
                         Icon(Icons.book, size: 100),
                   )
-                      : CircularProgressIndicator(), // Show a loader while image is being fetched
+                      : CircularProgressIndicator(
+                    valueColor:
+                    AlwaysStoppedAnimation<Color>(Colors.blue),
+                  ), // Show a loader while image is being fetched
                 ),
               ),
             ),
             SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  // Implement the action to show the PDF
-                },
-                child: Text(
-                  "Show PDF",
-                  style: TextStyle(color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  textStyle: TextStyle(fontSize: 18),
-                ),
+            ButtonRow(screenWidth,screenHeight),
+            SizedBox(height: 10),
+            Card(
+              elevation: 8, // Adds shadow to make the card stand out
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15), // Rounded corners
               ),
-            ),
-            SizedBox(height: 20),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 7),
-              child: Card(
-                elevation: 5, // Adds shadow to make the card stand out
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15), // Rounded corners
-                ),
-                color: Colors.white, // White background for the card
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  // Padding inside the card
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Title: ${widget.book['title'] ?? 'No Title'}',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Roboto', // Use Roboto font
-                          color: Colors.black87, // Slightly softer black
-                        ),
+              color: Colors.white, // White background for the card
+              child: Padding(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 28.0, vertical: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${widget.book['title'] ?? 'No Title'}',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Roboto', // Use Roboto font
+                        color: Colors.black87, // Slightly softer black
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Author: ${widget.book['authorName'] ?? 'Unknown'}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'Roboto', // Roboto font
-                          color: Colors
-                              .grey[700], // Softer color for better readability
-                        ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Author: ${widget.book['authorName'] ?? 'Unknown'}',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Roboto', // Roboto font
+                        color: Colors.grey[700], // Softer color for better readability
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Genre: ${widget.book['genre'] ?? 'Unknown'}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'Roboto',
-                          color: Colors.grey[700],
-                        ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Genre: ${widget.book['genre'] ?? 'Unknown'}',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Roboto',
+                        color: Colors.grey[700],
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Edition: ${widget.book['edition'] ?? 'N/A'}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'Roboto',
-                          color: Colors.grey[700],
-                        ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Edition: ${widget.book['edition'] ?? 'N/A'}',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Roboto',
+                        color: Colors.grey[700],
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                        'ISBN: ${widget.book['isbn']}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'Roboto',
-                          color: Colors.grey[700],
-                        ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'ISBN: ${widget.book['isbn']}',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Roboto',
+                        color: Colors.grey[700],
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Availability:',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Roboto',
-                          color: Colors.black87,
-                        ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Availability:',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Roboto',
+                        color: Colors.black87,
                       ),
-                      SizedBox(height: 5),
-                      Text(
-                        widget.book['availability'] >= 1
-                            ? 'Available'
-                            : 'Not Available',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: widget.book['availability'] >= 1
-                              ? Colors.green
-                              : Colors.red,
-                          fontFamily: 'Roboto',
-                        ),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      widget.book['availability'] >= 1
+                          ? 'Available'
+                          : 'Not Available',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: widget.book['availability'] >= 1
+                            ? Colors.green
+                            : Colors.red,
+                        fontFamily: 'Roboto',
                       ),
-                      SizedBox(height: 13),
-                      Text(
-                        'Description:',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Roboto',
-                          color: Colors.black87,
-                        ),
+                    ),
+                    SizedBox(height: 13),
+                    Text(
+                      'Description:',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Roboto',
+                        color: Colors.black87,
                       ),
-                      SizedBox(height: 5),
-                      Text(
-                        widget.book['description'] ??
-                            'No description available.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontFamily: 'Roboto',
-                          color: Colors.grey[700],
-                        ),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      widget.book['description'] ?? 'No description available.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Roboto',
+                        color: Colors.grey[700],
                       ),
-                      SizedBox(height: 20),
-
-                      // Additional buttons for borrowing or favorite functionality
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [Colors.blue, Colors.lightBlueAccent],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: ElevatedButton(
-                              onPressed: () {
-                                // Implement your borrow logic here
-                              },
-                              child: Text(
-                                "Borrow",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontFamily: 'Roboto',
-                                  color: Colors.white,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                // Button with gradient background
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 10),
-                              ),
-                            ),
+                    ),
+                    SizedBox(height: 20),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CustomElevatedButton(
+                          onPressed: () {
+                            // Implement your borrow logic here
+                          },
+                          text: "Borrow",
+                          textStyle: TextStyle(
+                            fontSize: 18,
+                            fontFamily: 'Roboto',
+                            color: Colors.white,
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [Colors.red, Colors.redAccent],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: ElevatedButton(
-                              onPressed: () {
-                                // Implement your favorite logic here
-                              },
-                              child: Text(
-                                "Favorite",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontFamily: 'Roboto',
-                                  color: Colors.white,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                // Button with gradient background
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 10),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                        SizedBox(height: 17),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+  Widget ButtonRow(double screenWidth, double screenHeight) {
+    return Row(
+      children: [
+        Spacer(flex: 2),
+        ShowPDF(),
+        Spacer(flex: 1), // Takes more space to center the button
+        HeartButton(), // Heart button aligned to the right
+      ],
+    );
+  }
+
+
+
+
+
+  Widget ShowPDF(){
+    return ElevatedButton(
+      onPressed: () {
+        // Implement the action to show the PDF
+      },
+      child: Text(
+        "Show PDF",
+        style: TextStyle(color: Colors.white),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue,
+        textStyle: TextStyle(fontSize: 18),
+      ),
+    );
+  }
+
+  Widget HeartButton(){
+    return IconButton(
+      onPressed: _toggleFavorite,
+      icon: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isFavorited ? Colors.red : Colors.grey[300],
+        ),
+        padding: EdgeInsets.all(8.0),
+        child: Icon(
+          Icons.favorite,
+          color: isFavorited ? Colors.white : Colors.red,
+          size: 30,
         ),
       ),
     );
