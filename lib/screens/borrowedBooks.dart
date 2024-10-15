@@ -66,11 +66,11 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
         .where('recordID', isEqualTo: recordID)
         .get();
 
-    var finedata = 0;
+    double finedata = 0.0; // Default to double
 
     if (fineQuerySnapshot.docs.isNotEmpty) {
       var fineDoc = fineQuerySnapshot.docs[0];
-      finedata = fineDoc.data()?['fineAMT'] ?? 0;
+      finedata = fineDoc.data()?['fineAMT'] ?? 0.0; // No need to cast
     }
 
     String imageUrl = await FirebaseStorage.instance
@@ -79,12 +79,13 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
 
     return {
       'title': bookdata['title'],
-      'borrowDate': recordsdata['borrowdate'],
-      'dueDate': recordsdata['duedate'],
+      'borrowDate': recordsdata['borrowdate'], // Ensure this is also correct type
+      'dueDate': recordsdata['duedate'], // Ensure this is also correct type
       'imageUrl': imageUrl,
       'fine': finedata,
     };
   }
+
 
   @override
   Widget build(BuildContext context) {

@@ -9,6 +9,7 @@ import 'logInScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'adminRecordsManagement.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   @override
@@ -372,7 +373,12 @@ Widget CustomDrawer (BuildContext context) {
                 ),
                 child: ListTile(
                   onTap: () {
-
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AdminBorrowedBooksScreen(),
+                      ),
+                    );
                   },
                   leading: Icon(Icons.file_copy_outlined, color: Colors.white),
                   title: Text(
