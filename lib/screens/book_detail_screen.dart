@@ -385,12 +385,12 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       icon: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: isFavorited ? Colors.red : Colors.grey[300],
+          color: isFavorited ? Colors.red : Colors.grey.shade200,
         ),
         padding: EdgeInsets.all(8.0),
         child: Icon(
           Icons.favorite,
-          color: isFavorited ? Colors.white : Colors.red,
+          color: isFavorited ?  Colors.white: Colors.red,
           size: 30,
         ),
       ),
