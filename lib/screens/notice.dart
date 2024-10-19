@@ -14,7 +14,17 @@ class Notice extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          leading: Icon(Icons.arrow_back),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white, size: 30,),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          title: Text(
+            "Notices",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.blueAccent,
         ),
         body: SingleChildScrollView(
           child: Padding(
@@ -22,26 +32,22 @@ class Notice extends StatelessWidget {
             child: Column(
               children: [
                 const Text(
-                  "Notice",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  "Notices",
+                  style: TextStyle(fontSize: 32,color: Colors.black, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: screenHeight * 0.02),
                 const Text(
-                  "Add a notice to be displayed",
+                  "Add a notice to be displayed to the students.",
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w300,
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.02),
-
                 TextFormField(
                   autovalidateMode: AutovalidateMode.onUserInteraction,
+                  keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                     labelText: "Heading",
                     labelStyle: const TextStyle(
@@ -49,7 +55,7 @@ class Notice extends StatelessWidget {
                       fontSize: 16,
                     ),
                     prefixIcon: const Icon(
-                      Icons.person,
+                      Icons.add_box_sharp,
                       color: Colors.black45,
                     ),
                     contentPadding: EdgeInsets.symmetric(
@@ -69,21 +75,28 @@ class Notice extends StatelessWidget {
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    errorBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        width: 2.0,
+                        color: Colors.redAccent,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.02),
 
                 TextFormField(
                   autovalidateMode: AutovalidateMode.onUserInteraction,
-
+                  keyboardType: TextInputType.text,
                   decoration: InputDecoration(
-                    labelText: "Notice",
+                    labelText: "Write the Notice here",
                     labelStyle: const TextStyle(
                       color: Colors.black87,
                       fontSize: 16,
                     ),
                     prefixIcon: const Icon(
-                      Icons.person,
+                      Icons.add_box_sharp,
                       color: Colors.black45,
                     ),
                     contentPadding: EdgeInsets.symmetric(
@@ -100,6 +113,13 @@ class Notice extends StatelessWidget {
                       borderSide: const BorderSide(
                         width: 2.0,
                         color: Colors.blueAccent,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        width: 2.0,
+                        color: Colors.redAccent,
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),

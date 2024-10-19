@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'favouritesScreen.dart';
 import 'search.dart';
+import 'categoryBooksScreen.dart';
 
 class UserHomeScreen extends StatefulWidget {
   @override
@@ -223,7 +224,6 @@ PreferredSizeWidget CustomAppbar(BuildContext context, GlobalKey<ScaffoldState> 
 
 Widget GreetingCard(double screenWidth, String name) {
   return SingleChildScrollView(
-
     padding: EdgeInsets.all( screenWidth * 0.06 ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,15 +367,30 @@ class CategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
     Orientation orientation = MediaQuery.of(context).orientation;
-    return Card(
+
+    return GestureDetector(
+      onTap: () {
+        // Navigate to a new screen to display books of the selected category
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryBooksScreen(department: title),
+          ),
+        );
+      },
+      child: Card(
         color: kblue_3,
-        shape: RoundedRectangleBorder( borderRadius: BorderRadius.circular(screenWidth * 0.04)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(screenWidth * 0.04),
+        ),
         child: Padding(
-          padding:  EdgeInsets.all(orientation==Orientation.landscape?screenWidth * 0.001:screenWidth * 0.01), // Reduce padding to prevent overflow
+          padding: EdgeInsets.all(orientation == Orientation.landscape
+              ? screenWidth * 0.001
+              : screenWidth * 0.01), // Reduce padding to prevent overflow
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: screenWidth* 0.02),
+              SizedBox(height: screenWidth * 0.02),
               Expanded(
                 flex: 1,
                 child: Padding(
@@ -384,7 +399,8 @@ class CategoryCard extends StatelessWidget {
                     height: screenWidth * 0.5, // Reduce image size for better fit
                     width: screenWidth * 0.5,
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(screenWidth * 0.02), // Adjust this value for the roundness of corners
+                      borderRadius:
+                      BorderRadius.circular(screenWidth * 0.02), // Adjust this value for the roundness of corners
                       child: Image.asset(
                         iconPath,
                         fit: BoxFit.cover,
@@ -395,27 +411,32 @@ class CategoryCard extends StatelessWidget {
               ),
               SizedBox(height: screenWidth * 0.007), // Adjust spacing
               Text(
-                  title,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: orientation==Orientation.landscape?screenWidth * 0.025:screenWidth * 0.045, // Adjust text size for fit
-                    fontWeight: FontWeight.bold,
-                    overflow: TextOverflow.ellipsis, // Prevent overflow
-                  ),
+                title,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: orientation == Orientation.landscape
+                      ? screenWidth * 0.025
+                      : screenWidth * 0.045, // Adjust text size for fit
+                  fontWeight: FontWeight.bold,
+                  overflow: TextOverflow.ellipsis, // Prevent overflow
+                ),
               ),
               SizedBox(height: screenWidth * 0.005),
               Text(
-                  '$booksCount books',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: orientation==Orientation.landscape?screenWidth * 0.023:screenWidth * 0.036, // Adjust text size for fit
-                    overflow: TextOverflow.ellipsis, // Prevent overflow
-                  ),
+                '$booksCount books',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: orientation == Orientation.landscape
+                      ? screenWidth * 0.023
+                      : screenWidth * 0.036, // Adjust text size for fit
+                  overflow: TextOverflow.ellipsis, // Prevent overflow
+                ),
               ),
               SizedBox(height: screenWidth * 0.01),
             ],
           ),
         ),
-      );
+      ),
+    );
   }
 }

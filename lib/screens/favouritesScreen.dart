@@ -1,3 +1,4 @@
+import 'package:book_vault/screens/book_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -104,77 +105,87 @@ class _FavouriteBooksScreenState extends State<FavouritesScreen> {
           itemCount: books.length,
           itemBuilder: (context, index) {
             final book = books[index];
-            return Card(
-              margin: EdgeInsets.symmetric(
-                  vertical: screenHeight * 0.01),
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Colors.blue.withOpacity(0.3)),
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(screenWidth * 0.04),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            book['title'] ?? '',
-                            style: TextStyle(
-                              fontSize: 20 * textScaleFactor,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueAccent,
-                            ),
-                          ),
-                          SizedBox(height: screenHeight * 0.01),
-                          Text(
-                            'Author: ${book['authorName'] ?? ''}',
-                            style: TextStyle(
-                              fontSize: 16 * textScaleFactor,
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                          Text(
-                            'Edition: ${book['edition'] ?? ''}',
-                            style: TextStyle(
-                              fontSize: 16 * textScaleFactor,
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                          Text(
-                            'Genre: ${book['genre'] ?? ''}',
-                            style: TextStyle(
-                              fontSize: 16 * textScaleFactor,
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: screenWidth * 0.02),
-                    Flexible(
-                      flex: 2,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          book['imageUrl'] ?? '',
-                          height: screenHeight * 0.15,
-                          width: screenWidth * 0.25,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Icon(
-                                Icons.broken_image,
-                                size: screenHeight * 0.15,
-                                color: Colors.grey,
+            return GestureDetector(
+              onTap: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BookDetailScreen(book: book),
+                  ),
+                );
+              },
+              child: Card(
+                margin: EdgeInsets.symmetric(
+                    vertical: screenHeight * 0.01),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(screenWidth * 0.04),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              book['title'] ?? '',
+                              style: TextStyle(
+                                fontSize: 20 * textScaleFactor,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueAccent,
                               ),
+                            ),
+                            SizedBox(height: screenHeight * 0.01),
+                            Text(
+                              'Author: ${book['authorName'] ?? ''}',
+                              style: TextStyle(
+                                fontSize: 16 * textScaleFactor,
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                            Text(
+                              'Edition: ${book['edition'] ?? ''}',
+                              style: TextStyle(
+                                fontSize: 16 * textScaleFactor,
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                            Text(
+                              'Genre: ${book['genre'] ?? ''}',
+                              style: TextStyle(
+                                fontSize: 16 * textScaleFactor,
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
+                      SizedBox(width: screenWidth * 0.02),
+                      Flexible(
+                        flex: 2,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            book['imageUrl'] ?? '',
+                            height: screenHeight * 0.15,
+                            width: screenWidth * 0.25,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(
+                                  Icons.broken_image,
+                                  size: screenHeight * 0.15,
+                                  color: Colors.grey,
+                                ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );

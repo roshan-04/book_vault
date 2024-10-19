@@ -1,3 +1,4 @@
+import 'package:book_vault/screens/book_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:book_vault/constants/colors.dart';
 import '../widgets/myDrawerHeader.dart';
@@ -110,8 +111,8 @@ class _AdminHomeScreen extends State<AdminHomeScreen> {
           physics: NeverScrollableScrollPhysics(), // Prevent scroll issues
           itemBuilder: (context, index) {
             return BookCard(
-              title: books[index]['title'], // Book title
-              imageUrl: books[index]['imageUrl'], // Book image URL
+                title: books[index]['title'], // Book title
+                imageUrl: books[index]['imageUrl'], // Book image URL
             );
           },
         );
@@ -203,40 +204,41 @@ class BookCard extends StatelessWidget {
     var screenWidth = MediaQuery.of(context).size.width;
     Orientation orientation = MediaQuery.of(context).orientation;
     return Card(
-      color: Colors.blue[300], // Adjust color as needed
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(screenWidth * 0.04)),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical:screenWidth * 0.02, horizontal: screenWidth * 0.025), // Adjust padding
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(screenWidth * 0.02), // Rounded image corners
-                child: Image.network(
-                  imageUrl, // Load image from URL
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: screenWidth * 0.3,
+        color: Colors.blue[300], // Adjust color as needed
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(screenWidth * 0.04)),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical:screenWidth * 0.02, horizontal: screenWidth * 0.025), // Adjust padding
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(screenWidth * 0.02), // Rounded image corners
+                  child: Image.network(
+                    imageUrl, // Load image from URL
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: screenWidth * 0.3,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: screenWidth * 0.02),
-            Text(
-              title,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: orientation == Orientation.landscape
-                    ? screenWidth * 0.03
-                    : screenWidth * 0.04, // Adjust text size
-                fontWeight: FontWeight.bold,
-                overflow: TextOverflow.ellipsis, // Prevent overflow
+              SizedBox(height: screenWidth * 0.02),
+              Text(
+                title,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: orientation == Orientation.landscape
+                      ? screenWidth * 0.03
+                      : screenWidth * 0.04, // Adjust text size
+                  fontWeight: FontWeight.bold,
+                  overflow: TextOverflow.ellipsis, // Prevent overflow
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+
     );
   }
 }
@@ -340,6 +342,7 @@ Widget CustomDrawer (BuildContext context) {
                 ),
               ),
             ),
+
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
               child: Container(
@@ -364,6 +367,7 @@ Widget CustomDrawer (BuildContext context) {
                 ),
               ),
             ),
+
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
               child: Container(
