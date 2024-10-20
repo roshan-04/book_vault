@@ -36,12 +36,7 @@ class Notice extends StatelessWidget {
                   style: TextStyle(fontSize: 32,color: Colors.black, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: screenHeight * 0.02),
-                const Text(
-<<<<<<< Updated upstream
-                  "Add a notice to be displayed to the students.",
-=======
-                  "Add a notice to be displayed to the students!",
->>>>>>> Stashed changes
+                const Text("Add a notice to be displayed to the students!",
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
