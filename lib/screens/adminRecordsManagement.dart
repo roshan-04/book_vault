@@ -97,15 +97,11 @@ class _AdminBorrowedBooksScreenState extends State<AdminBorrowedBooksScreen> {
       return;
     }
 
-    // Show spinner during the deletion process
     setState(() {
       _isLoading = true;
     });
 
     try {
-
-      String recordID = recordRef.id;
-
       // Step 1: Get the borrow documents associated with the recordRef
       final borrowQuerySnapshot = await FirebaseFirestore.instance
           .collection('borrows')
@@ -125,19 +121,19 @@ class _AdminBorrowedBooksScreenState extends State<AdminBorrowedBooksScreen> {
       // Step 3: Remove the borrow documents and update borrowsREL
       if (borrowQuerySnapshot.docs.isNotEmpty) {
         for (var borrowDoc in borrowQuerySnapshot.docs) {
-          // Delete each borrow document
           await borrowDoc.reference.delete();
         }
+
+        // Only update borrowsREL if there are borrow documents
+        await studentRef.update({
+          'borrowsREL': FieldValue.arrayRemove(borrowQuerySnapshot.docs.map((doc) => doc.reference).toList())
+        });
       }
 
-      // Step 4: Update the student's borrowsREL array to remove the record reference
-      await studentRef.update({
-        'borrowsREL': FieldValue.arrayRemove([borrowQuerySnapshot.docs.first.reference]) // Adjust if necessary
-      });
-
+      // Step 4: Delete associated fines
       final fineQuerySnapshot = await FirebaseFirestore.instance
           .collection('fine')
-          .where('recordID', isEqualTo: recordID)
+          .where('recordID', isEqualTo: recordRef.id)
           .get();
 
       if (fineQuerySnapshot.docs.isNotEmpty) {
@@ -146,7 +142,10 @@ class _AdminBorrowedBooksScreenState extends State<AdminBorrowedBooksScreen> {
         }
       }
 
+      // Step 5: Delete the record
       await recordRef.delete();
+
+      // Update the staff managesREL to remove the record reference
       final staffDocRef = FirebaseFirestore.instance
           .collection('staff')
           .doc('3u6dRZrnMcNXDWwojFht1CXuYv12');
@@ -154,9 +153,8 @@ class _AdminBorrowedBooksScreenState extends State<AdminBorrowedBooksScreen> {
         'managesREL': FieldValue.arrayRemove([recordRef])
       });
 
-      // Re-fetch records to update the list
+      // Refresh records list
       _fetchPendingRecords();
-      //_fetchRecordAndBookData();
 
       // Show success Snackbar
       ScaffoldMessenger.of(context).showSnackBar(
@@ -182,6 +180,7 @@ class _AdminBorrowedBooksScreenState extends State<AdminBorrowedBooksScreen> {
       });
     }
   }
+
 
 
   @override

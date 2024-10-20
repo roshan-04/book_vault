@@ -154,6 +154,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
  @override
   Widget build(BuildContext context) {
+   int availability = widget.book['availability'] ?? 0;
    double screenWidth = MediaQuery.of(context).size.width;
    double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
@@ -282,12 +283,12 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                     ),
                     SizedBox(height: 5),
                     Text(
-                      widget.book['availability'] >= 1
+                      availability >= 1
                           ? 'Available'
                           : 'Not Available',
                       style: TextStyle(
                         fontSize: 18,
-                        color: widget.book['availability'] >= 1
+                        color: availability >= 1
                             ? Colors.green
                             : Colors.red,
                         fontFamily: 'Roboto',
