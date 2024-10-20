@@ -37,7 +37,11 @@ class Notice extends StatelessWidget {
                 ),
                 SizedBox(height: screenHeight * 0.02),
                 const Text(
+<<<<<<< Updated upstream
                   "Add a notice to be displayed to the students.",
+=======
+                  "Add a notice to be displayed to the students!",
+>>>>>>> Stashed changes
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
