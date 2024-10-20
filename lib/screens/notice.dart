@@ -1,20 +1,26 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/elevatedButton.dart';
 
 class Notice extends StatelessWidget {
-  const Notice({super.key});
+  final TextEditingController headingController = TextEditingController();
+  final TextEditingController contentController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          leading: Icon(Icons.arrow_back),
+          title: Text('Notice'),
+          leading: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: Icon(Icons.arrow_back)),
         ),
         body: SingleChildScrollView(
           child: Padding(
@@ -39,9 +45,9 @@ class Notice extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.02),
-
                 TextFormField(
                   autovalidateMode: AutovalidateMode.onUserInteraction,
+                  controller: headingController,
                   decoration: InputDecoration(
                     labelText: "Heading",
                     labelStyle: const TextStyle(
@@ -72,12 +78,11 @@ class Notice extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.02),
-
                 TextFormField(
                   autovalidateMode: AutovalidateMode.onUserInteraction,
-
+                  controller: contentController,
                   decoration: InputDecoration(
-                    labelText: "Notice",
+                    labelText: "Write the Notice here!",
                     labelStyle: const TextStyle(
                       color: Colors.black87,
                       fontSize: 16,
@@ -105,12 +110,16 @@ class Notice extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 SizedBox(height: screenHeight * 0.03),
                 CustomElevatedButton(
                   foregroundColor: Colors.white,
                   backgroundColor: Colors.blue,
-                  onPressed: () {},
+                  onPressed: () {
+                    if (headingController.text.isNotEmpty &&
+                        contentController.text.isNotEmpty) {
+                      _submitNotice(context);
+                    }
+                  },
                   text: 'Post',
                   textStyle: TextStyle(
                     fontSize: 20,
@@ -125,5 +134,18 @@ class Notice extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _submitNotice(BuildContext context) {
+    FirebaseFirestore.instance.collection('notice').add({
+      'heading': headingController.text,
+      'content': contentController.text,
+      'timestamp': FieldValue.serverTimestamp(),
+    }).then((value) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Notice submitted successfully!')),
+      );
+      Navigator.pop(context); // Go back after submitting
+    });
   }
 }

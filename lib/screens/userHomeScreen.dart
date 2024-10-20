@@ -1,7 +1,9 @@
+import 'package:book_vault/screens/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:book_vault/constants/colors.dart';
 import 'package:book_vault/widgets/myDrawerHeader.dart';
 import 'borrowedBooks.dart';
+import 'noticeListForUsers.dart';
 import 'profileScreen.dart';
 import 'package:book_vault/screens/logInScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -147,6 +149,31 @@ Widget CustomDrawer (BuildContext context) {
                   ),
                 ),
 
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color:Colors.blue,
+                  ),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => NoticesList(),
+                        ),
+                      );
+                    },
+                    leading: Icon(Icons.add_card, color: Colors.white),
+                    title: Text(
+                      "Notice",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+
                 Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
                     child: Container(
@@ -155,6 +182,14 @@ Widget CustomDrawer (BuildContext context) {
                         color:  Colors.blue,
                       ),
                       child: ListTile(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SettingsScreen(),
+                            ),
+                          );
+                        },
                         leading: Icon(Icons.settings, color: Colors.white),
                         title: Text(
                           "Settings",

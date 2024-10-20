@@ -1,3 +1,4 @@
+import 'package:book_vault/screens/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:book_vault/constants/colors.dart';
 import '../widgets/myDrawerHeader.dart';
@@ -332,6 +333,14 @@ Widget CustomDrawer (BuildContext context) {
                   color:  Colors.blue,
                 ),
                 child: ListTile(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SettingsScreen(),
+                      ),
+                    );
+                  },
                   leading: Icon(Icons.settings, color: Colors.white),
                   title: Text(
                     "Settings",
