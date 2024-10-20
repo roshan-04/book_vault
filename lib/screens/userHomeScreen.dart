@@ -155,6 +155,14 @@ Widget CustomDrawer (BuildContext context) {
                         color:  Colors.blue,
                       ),
                       child: ListTile(
+                        onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SettingsScreen(),
+                          ),
+                        );
+                      },
                         leading: Icon(Icons.settings, color: Colors.white),
                         title: Text(
                           "Settings",
