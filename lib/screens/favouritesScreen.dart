@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'book_detail_screen.dart'; // Import the BookDetailScreen
 
 class FavouritesScreen extends StatefulWidget {
   @override
@@ -51,6 +52,7 @@ class _FavouriteBooksScreenState extends State<FavouritesScreen> {
 
   Future<Map<String, dynamic>> _fetchBookData(DocumentReference bookRef) async {
     var booksnapshot = await bookRef.get();
+
     final bookdata = booksnapshot.data() as Map<String, dynamic>;
     String imageUrl = await FirebaseStorage.instance
         .ref(bookdata['bookimg'])
@@ -58,10 +60,14 @@ class _FavouriteBooksScreenState extends State<FavouritesScreen> {
 
     return {
       'title': bookdata['title'],
+      'isbn': bookdata['isbn'],
       'authorName': bookdata['authorName'],
       'edition': bookdata['edition'],
       'imageUrl': imageUrl,
+      "bookimg": bookdata['bookimg'],
+      'availability': bookdata['availability'],
       'genre': bookdata['genre'],
+      'description':  bookdata['description'],
     };
   }
 
@@ -104,77 +110,88 @@ class _FavouriteBooksScreenState extends State<FavouritesScreen> {
           itemCount: books.length,
           itemBuilder: (context, index) {
             final book = books[index];
-            return Card(
-              margin: EdgeInsets.symmetric(
-                  vertical: screenHeight * 0.01),
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Colors.blue.withOpacity(0.3)),
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(screenWidth * 0.04),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            book['title'] ?? '',
-                            style: TextStyle(
-                              fontSize: 20 * textScaleFactor,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueAccent,
-                            ),
-                          ),
-                          SizedBox(height: screenHeight * 0.01),
-                          Text(
-                            'Author: ${book['authorName'] ?? ''}',
-                            style: TextStyle(
-                              fontSize: 16 * textScaleFactor,
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                          Text(
-                            'Edition: ${book['edition'] ?? ''}',
-                            style: TextStyle(
-                              fontSize: 16 * textScaleFactor,
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                          Text(
-                            'Genre: ${book['genre'] ?? ''}',
-                            style: TextStyle(
-                              fontSize: 16 * textScaleFactor,
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: screenWidth * 0.02),
-                    Flexible(
-                      flex: 2,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          book['imageUrl'] ?? '',
-                          height: screenHeight * 0.15,
-                          width: screenWidth * 0.25,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Icon(
-                                Icons.broken_image,
-                                size: screenHeight * 0.15,
-                                color: Colors.grey,
+            return GestureDetector( // Wrap the Card in GestureDetector
+              onTap: () {
+                // Navigate to the BookDetailScreen when tapped
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BookDetailScreen(book: book),
+                  ),
+                );
+              },
+              child: Card(
+                margin: EdgeInsets.symmetric(
+                    vertical: screenHeight * 0.01),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(screenWidth * 0.04),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              book['title'] ?? '',
+                              style: TextStyle(
+                                fontSize: 20 * textScaleFactor,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueAccent,
                               ),
+                            ),
+                            SizedBox(height: screenHeight * 0.01),
+                            Text(
+                              'Author: ${book['authorName'] ?? ''}',
+                              style: TextStyle(
+                                fontSize: 16 * textScaleFactor,
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                            Text(
+                              'Edition: ${book['edition'] ?? ''}',
+                              style: TextStyle(
+                                fontSize: 16 * textScaleFactor,
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                            Text(
+                              'Genre: ${book['genre'] ?? ''}',
+                              style: TextStyle(
+                                fontSize: 16 * textScaleFactor,
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
+                      SizedBox(width: screenWidth * 0.02),
+                      Flexible(
+                        flex: 2,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            book['imageUrl'] ?? '',
+                            height: screenHeight * 0.15,
+                            width: screenWidth * 0.25,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(
+                                  Icons.broken_image,
+                                  size: screenHeight * 0.15,
+                                  color: Colors.grey,
+                                ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
