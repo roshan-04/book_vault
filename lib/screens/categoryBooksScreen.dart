@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'book_detail_screen.dart';
@@ -26,7 +25,7 @@ class _CategoryBooksScreenState extends State<CategoryBooksScreen> {
           .get();
 
       final bookList = querySnapshot.docs
-          .map((doc) => doc.data() as Map<String, dynamic>)
+          .map((doc) => doc.data())
           .toList();
 
       setState(() {

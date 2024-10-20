@@ -70,7 +70,7 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
 
     if (fineQuerySnapshot.docs.isNotEmpty) {
       var fineDoc = fineQuerySnapshot.docs[0];
-      finedata = fineDoc.data()?['fineAMT'] ?? 0.0; // No need to cast
+      finedata = fineDoc.data()['fineAMT'] ?? 0.0; // No need to cast
     }
 
     String imageUrl = await FirebaseStorage.instance

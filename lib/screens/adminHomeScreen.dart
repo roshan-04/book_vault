@@ -1,4 +1,3 @@
-import 'package:book_vault/screens/book_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:book_vault/constants/colors.dart';
 import '../widgets/myDrawerHeader.dart';
