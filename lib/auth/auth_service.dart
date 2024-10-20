@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'dart:ffi';
+//import 'dart:ffi'; --> doesnt work on web platforms, Im running in chrome 
 
 import 'package:firebase_auth/firebase_auth.dart';
 
