@@ -23,7 +23,7 @@ class SettingsSetting extends StatelessWidget {
             },
           ),
           title: Text(
-            "Settings",
+            whichSetting,
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.blueAccent,
