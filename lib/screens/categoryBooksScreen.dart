@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../../../book_vault_working_test-master/lib/screens/book_detail_screen.dart';
+import 'book_detail_screen.dart';
 
 class CategoryBooksScreen extends StatefulWidget {
   final String department;
