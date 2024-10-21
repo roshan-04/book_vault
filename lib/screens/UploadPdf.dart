@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_document_picker/flutter_document_picker.dart';  
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage; 
@@ -23,64 +24,75 @@ class _UploadBookState extends State<UploadBook> {
   final TextEditingController _isbnController = TextEditingController();
   final TextEditingController _publisherController = TextEditingController();
 
-  File? _pickedImage;  // To store the picked image
-  String? _imageUrl;   // To store the uploaded image URL
-  String? _pdfUrl;     // To store the uploaded PDF URL
+  File? _pickedImage; 
+  String? _imageUrl;   
+  String? _pdfUrl;     
+  bool _isLoading = false; 
 
-  // Function to pick an image
-    Future<void> pickImage() async {
-      final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        setState(() {
-          _pickedImage = File(pickedFile.path);
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No image selected")));
-      }
+  Future<void> pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _pickedImage = File(pickedFile.path);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("No image selected")),
+      );
     }
+  }
 
-    Future<String?> uploadFile(File file, String directory) async {
+  Future<String?> uploadFile(File file, String directory) async {
     try {
+      setState(() {
+        _isLoading = true; // Start loading
+      });
+
       // Extract file name
       String fileName = file.path.split('/').last;
 
       // Create a reference to the file location in Firebase Storage
       firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
-        .ref()
-        .child('$directory/$fileName');  // Path in Firebase Storage
+          .ref()
+          .child('$directory/$fileName');  // Path in Firebase Storage
 
       // Upload the file with metadata
       final metadata = firebase_storage.SettableMetadata(
-        contentType: directory == 'pdf' ? 'application/pdf' : 'image/png', // Set content-type based on file
-        customMetadata: {'picked-file-path': file.path}
+        contentType: directory == 'pdf' ? 'application/pdf' : 'image/png',  // Set content-type based on file
+        customMetadata: {'picked-file-path': file.path},
       );
-
-      // Upload task
       firebase_storage.UploadTask uploadTask = ref.putFile(file, metadata);
-
-      // Await the task to complete
       await uploadTask.whenComplete(() => null);
-
-      // Return the relative path
-      return '$directory/$fileName';  // Return the custom formatted path
-
+      return '$directory/$fileName';
     } catch (e) {
-      print("Error uploading file: $e");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error uploading file: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error uploading file: $e")),
+      );
       return null;
+    } finally {
+      setState(() {
+        _isLoading = false; 
+      });
     }
   }
 
   Future<void> addBookDetails() async {
     if (_pdfUrl == null || _imageUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please upload both PDF and Image")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please upload both PDF and Image")),
+      );
       return;
     }
-
-    // Reference to Firestore 'book' collection
     CollectionReference books = FirebaseFirestore.instance.collection('book');
 
-    // Add a new document with the book details from user input
+    User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("User not logged in")),
+      );
+      return;
+    }
+    
     await books.doc(_isbnController.text).set({
       'title': _titleController.text,
       'authorName': _authorController.text,
@@ -93,11 +105,18 @@ class _UploadBookState extends State<UploadBook> {
       'genre': _genreController.text,
       'isbn': _isbnController.text,
       'publisherName': _publisherController.text,
-    }).then((value) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Book details uploaded successfully")));
+    }).then((value) async {
+      DocumentReference userRef = FirebaseFirestore.instance.collection('staff').doc(user.uid);
+      await userRef.update({
+        'booksadded': FieldValue.arrayUnion([books.doc(_isbnController.text)])
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Book details uploaded successfully")),
+      );
     }).catchError((error) {
-      print("Failed to add book details: $error");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to upload book details: $error")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to upload book details: $error")),
+      );
     });
   }
 
@@ -107,81 +126,85 @@ class _UploadBookState extends State<UploadBook> {
       appBar: AppBar(title: Text("Upload Book")),  
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView(
+        child: Stack(
           children: [
-            // Text fields to collect user input
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(labelText: 'Title'),
+            ListView(
+              children: [
+                // Text fields to collect user input
+                TextField(
+                  controller: _titleController,
+                  decoration: InputDecoration(labelText: 'Title'),
+                ),
+                TextField(
+                  controller: _authorController,
+                  decoration: InputDecoration(labelText: 'Author Name'),
+                ),
+                TextField(
+                  controller: _availabilityController,
+                  decoration: InputDecoration(labelText: 'Availability'),
+                  keyboardType: TextInputType.number, 
+                ),
+                TextField(
+                  controller: _departmentController,
+                  decoration: InputDecoration(labelText: 'Department'),
+                ),
+                TextField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(labelText: 'Description'),
+                ),
+                TextField(
+                  controller: _editionController,
+                  decoration: InputDecoration(labelText: 'Edition'),
+                ),
+                TextField(
+                  controller: _genreController,
+                  decoration: InputDecoration(labelText: 'Genre'),
+                ),
+                TextField(
+                  controller: _isbnController,
+                  decoration: InputDecoration(labelText: 'ISBN'),
+                ),
+                TextField(
+                  controller: _publisherController,
+                  decoration: InputDecoration(labelText: 'Publisher Name'),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  child: Text('Select Image'),
+                  onPressed: pickImage, 
+                ),
+                ElevatedButton(
+                  child: Text('Select PDF'),
+                  onPressed: () async {   
+                    final path = await FlutterDocumentPicker.openDocument();  
+                    if (path != null) {
+                      File file = File(path);  
+                      String? pdfUrl = await uploadFile(file, 'pdf');
+                      setState(() {
+                        _pdfUrl = pdfUrl;
+                      });
+                    }
+                  },
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  child: Text('Upload Book Details'),
+                  onPressed: () async {
+                    if (_pickedImage != null) {
+                      String? imageUrl = await uploadFile(_pickedImage!, 'bookimgs'); 
+                      setState(() {
+                        _imageUrl = imageUrl;
+                      });
+                    }
+                    await addBookDetails();
+                  },
+                ),
+              ],
             ),
-            TextField(
-              controller: _authorController,
-              decoration: InputDecoration(labelText: 'Author Name'),
-            ),
-            TextField(
-              controller: _availabilityController,
-              decoration: InputDecoration(labelText: 'Availability'),
-              keyboardType: TextInputType.number,  // Ensure this is a number
-            ),
-            TextField(
-              controller: _departmentController,
-              decoration: InputDecoration(labelText: 'Department'),
-            ),
-            TextField(
-              controller: _descriptionController,
-              decoration: InputDecoration(labelText: 'Description'),
-            ),
-            TextField(
-              controller: _editionController,
-              decoration: InputDecoration(labelText: 'Edition'),
-            ),
-            TextField(
-              controller: _genreController,
-              decoration: InputDecoration(labelText: 'Genre'),
-            ),
-            TextField(
-              controller: _isbnController,
-              decoration: InputDecoration(labelText: 'ISBN'),
-            ),
-            TextField(
-              controller: _publisherController,
-              decoration: InputDecoration(labelText: 'Publisher Name'),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              child: Text('Select Image'),
-              onPressed: pickImage,  // Pick image from gallery
-            ),
-            ElevatedButton(
-              child: Text('Select PDF'),
-              onPressed: () async {   
-                final path = await FlutterDocumentPicker.openDocument();  
-                print("Selected path: $path");  
-                if (path != null) {
-                  File file = File(path);  
-                  String? pdfUrl = await uploadFile(file, 'pdf');  // Upload PDF
-                  setState(() {
-                    _pdfUrl = pdfUrl;
-                  });
-                }
-              },
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              child: Text('Upload Book Details'),
-              onPressed: () async {
-                // First, upload the image if it was selected
-                if (_pickedImage != null) {
-                  String? imageUrl = await uploadFile(_pickedImage!, 'bookimgs');  // Upload image
-                  setState(() {
-                    _imageUrl = imageUrl;
-                  });
-                }
-
-                // Finally, add the book details to Firestore
-                await addBookDetails();
-              },
-            ),
+            if (_isLoading)
+              Center(
+                child: CircularProgressIndicator(),
+              ),
           ],
         ),
       ),

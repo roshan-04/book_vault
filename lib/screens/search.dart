@@ -25,7 +25,6 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
     });
 
     try {
-      // Query to fetch all books
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('book')
           .get();
