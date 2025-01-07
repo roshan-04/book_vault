@@ -84,7 +84,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   String? _validateMobileNumber(String? value) {
-  if (value == null || value.isEmpty || value.length < 10) {
+  if (value == null || value.isEmpty || value.length < 10 || value.length > 10) {
   return 'Please enter a valid mobile number';
   }
   return null;
@@ -142,7 +142,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       // Dropdown to select between USER or STAFF
                       DropdownButtonFormField<String>(
                         value: _selectedUserType,
-                        items: ['USER', 'STAFF'].map((String type) {
+                        items: ['USER'].map((String type) {
                           return DropdownMenuItem<String>(
                             value: type,
                             child: Text(type),

@@ -1,6 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:open_file/open_file.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:book_vault/widgets/elevatedButton.dart';
@@ -17,6 +21,8 @@ class BookDetailScreen extends StatefulWidget {
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
   bool isFavorited = false;
+  bool _isLoading = false;
+  firebase_storage.FirebaseStorage storage = firebase_storage.FirebaseStorage.instance;
   String? imageUrl;
   String userId = FirebaseAuth.instance.currentUser!.uid;
 
@@ -151,6 +157,47 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     }
   }
 
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.red,
+    ));
+  }
+
+  Future<void> _downloadAndViewPDF() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final pdfPath = widget.book['bookpdf'];
+      if (pdfPath == null || pdfPath.isEmpty) {
+        _showErrorSnackBar('PDF file not available!');
+        return;
+      }
+
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/${pdfPath.split('/').last}');
+
+      if (!await file.exists()) {
+        final ref = storage.ref().child(pdfPath);
+        await ref.writeToFile(file);
+        _showSnackBar('PDF Downloaded Successfully!');
+      }
+
+      await OpenFile.open(file.path);
+    } catch (e) {
+      _showErrorSnackBar('Failed to View PDF: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
  @override
   Widget build(BuildContext context) {
@@ -366,9 +413,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   Widget ShowPDF(){
     return ElevatedButton(
-      onPressed: () {
-        // Implement the action to show the PDF
-      },
+      onPressed: _downloadAndViewPDF,
       child: Text(
         "Show PDF",
         style: TextStyle(color: Colors.white),

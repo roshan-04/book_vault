@@ -6,15 +6,17 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          SwitchListTile(
+      body: SafeArea(
+        child: Column(
+          children: [
+            SwitchListTile(
               value: false,
               title: const Text("Theme"),
               onChanged: (value) {},
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      )
     );
   }
 }

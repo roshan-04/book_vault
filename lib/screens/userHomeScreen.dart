@@ -1,7 +1,9 @@
+import 'package:book_vault/screens/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:book_vault/constants/colors.dart';
 import 'package:book_vault/widgets/myDrawerHeader.dart';
 import 'borrowedBooks.dart';
+import 'noticeListForUsers.dart';
 import 'profileScreen.dart';
 import 'package:book_vault/screens/logInScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -147,6 +149,31 @@ Widget CustomDrawer (BuildContext context) {
                   ),
                 ),
 
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color:Colors.blue,
+                  ),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => NoticesList(),
+                        ),
+                      );
+                    },
+                    leading: Icon(Icons.add_card, color: Colors.white),
+                    title: Text(
+                      "Notice",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+
                 Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
                     child: Container(
@@ -155,6 +182,14 @@ Widget CustomDrawer (BuildContext context) {
                         color:  Colors.blue,
                       ),
                       child: ListTile(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SettingsScreen(),
+                            ),
+                          );
+                        },
                         leading: Icon(Icons.settings, color: Colors.white),
                         title: Text(
                           "Settings",
@@ -307,42 +342,34 @@ Widget CustomLayoutBuilder() {
         children: [
           CategoryCard(
             title: 'MECH',
-            booksCount: 16,
             iconPath: 'assets/images/mechdept.png',
           ),
           CategoryCard(
             title: 'COMP',
-            booksCount: 22,
             iconPath: 'assets/images/compdept.png',
           ),
           CategoryCard(
             title: 'CIVIL',
-            booksCount: 10,
             iconPath: 'assets/images/civildept.png',
           ),
           CategoryCard(
             title: 'ENE',
-            booksCount: 18,
             iconPath: 'assets/images/enedept.png',
           ),
           CategoryCard(
-            title: 'ETC',
-            booksCount: 18,
+            title: "ETC",
             iconPath: 'assets/images/etcdept.png',
           ),
           CategoryCard(
             title: 'IT',
-            booksCount: 10,
             iconPath: 'assets/images/ITdept.png',
           ),
           CategoryCard(
             title: 'MINING',
-            booksCount: 18,
             iconPath: 'assets/images/miningdept.png',
           ),
           CategoryCard(
             title: 'SCI',
-            booksCount: 18,
             iconPath: 'assets/images/scidept.png',
           ),
         ],
@@ -353,13 +380,11 @@ Widget CustomLayoutBuilder() {
 
 class CategoryCard extends StatelessWidget {
   final String title;
-  final int booksCount;
   final String iconPath;
 
   const CategoryCard({
     Key? key,
     required this.title,
-    required this.booksCount,
     required this.iconPath,
   }) : super(key: key);
 
@@ -422,17 +447,6 @@ class CategoryCard extends StatelessWidget {
                 ),
               ),
               SizedBox(height: screenWidth * 0.005),
-              Text(
-                '$booksCount books',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: orientation == Orientation.landscape
-                      ? screenWidth * 0.023
-                      : screenWidth * 0.036, // Adjust text size for fit
-                  overflow: TextOverflow.ellipsis, // Prevent overflow
-                ),
-              ),
-              SizedBox(height: screenWidth * 0.01),
             ],
           ),
         ),

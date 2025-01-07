@@ -1,3 +1,4 @@
+import 'package:book_vault/screens/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:book_vault/constants/colors.dart';
 import '../widgets/myDrawerHeader.dart';
@@ -5,6 +6,7 @@ import 'adminProfileScreen.dart';
 import 'addBook.dart';
 import 'notice.dart';
 import 'removeBook.dart';
+import 'package:book_vault/screens/UploadPdf.dart';
 import 'logInScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,6 +22,7 @@ class _AdminHomeScreen extends State<AdminHomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Map<String, dynamic>> books = [];
   String name = '';
+  bool isLoading = true;
 
   Future<void> _fetchStaffData() async {
     try {
@@ -56,12 +59,13 @@ class _AdminHomeScreen extends State<AdminHomeScreen> {
           setState(() {
             books = fetchedBooks;
             name = "${userData['firstName']} ${userData['lastName']}";
+            isLoading = false;
           });
         }
       }
     } catch (e) {
       print('Error fetching user data: $e');
-      // Handle error, show a message if necessary
+      isLoading = false;
     }
   }
 
@@ -82,7 +86,9 @@ class _AdminHomeScreen extends State<AdminHomeScreen> {
       appBar: CustomAppbar(_scaffoldKey),
       body:
       SafeArea(
-        child: GreetingCard(screenWidth,name),
+        child: isLoading
+            ? Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),)) // Show loading spinner
+            : GreetingCard(screenWidth, name),
       ),
     );
   }
@@ -186,6 +192,201 @@ class _AdminHomeScreen extends State<AdminHomeScreen> {
       ),
     );
   }
+
+  Widget CustomDrawer (BuildContext context) {
+    return Drawer(
+      child: SingleChildScrollView(
+        child: Container(
+          child: Column(
+            children: [
+              MyHeaderDrawer(),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                child:Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color: Colors.blue,
+                  ),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AdminProfileScreen(),
+                        ),
+                      );
+                    },
+                    leading: Icon(Icons.person, color: Colors.white),
+                    title: Text(
+                      "Profile",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color: Colors.blue,
+                  ),
+                  child: ListTile(
+                    onTap: () async {
+                      final shouldRefresh = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UploadBook(),
+                        ),
+                      );
+                      if (shouldRefresh == true) {
+                        _fetchStaffData(); // Refresh the book list
+                      }
+                    },
+                    leading: Icon(Icons.add_card, color: Colors.white),
+                    title: Text(
+                      "Add Book",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+
+
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color: Colors.blue,
+                  ),
+                  child: ListTile(
+                    onTap: () async {
+                      final shouldRefresh = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RemoveBook(),
+                        ),
+                      );
+                      if (shouldRefresh == true) {
+                        _fetchStaffData(); // Refresh the book list
+                      }
+                    },
+                    leading: Icon(Icons.account_balance_wallet_rounded, color: Colors.white),
+                    title: Text(
+                      "Remove Book",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+
+
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color:  Colors.blue,
+                  ),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SettingsScreen(),
+                        ),
+                      );
+                    },
+                    leading: Icon(Icons.settings, color: Colors.white),
+                    title: Text(
+                      "Settings",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color:Colors.blue,
+                  ),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Notice(),
+                        ),
+                      );
+                    },
+                    leading: Icon(Icons.file_copy, color: Colors.white),
+                    title: Text(
+                      "Notice",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color:Colors.blue,
+                  ),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AdminBorrowedBooksScreen(),
+                        ),
+                      );
+                    },
+                    leading: Icon(Icons.file_copy_outlined, color: Colors.white),
+                    title: Text(
+                      "Records",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color:  Colors.blue,
+                  ),
+                  child: ListTile(
+                    leading: Icon(Icons.logout,color: Colors.white),
+                    title: Text(
+                      "Log Out",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () async {
+                      await FirebaseAuth.instance.signOut();
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LogInScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 }
 
 class BookCard extends StatelessWidget {
@@ -242,194 +443,18 @@ class BookCard extends StatelessWidget {
 }
 
 
-Widget CustomDrawer (BuildContext context) {
-  return Drawer(
-    child: SingleChildScrollView(
-      child: Container(
-        child: Column(
-          children: [
-            MyHeaderDrawer(),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
-              child:Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  color: Colors.blue,
-                ),
-                child: ListTile(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AdminProfileScreen(),
-                      ),
-                    );
-                  },
-                  leading: Icon(Icons.person, color: Colors.white),
-                  title: Text(
-                    "Profile",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
 
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  color:Colors.blue,
-                ),
-                child: ListTile(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddBook(),
-                      ),
-                    );
-                  },
-                  leading: Icon(Icons.add_card, color: Colors.white),
-                  title: Text(
-                    "Add Book",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  color:Colors.blue,
-                ),
-                child: ListTile(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RemoveBook(),
-                      ),
-                    );
-                  },
-                  leading: Icon(Icons.account_balance_wallet_rounded, color: Colors.white),
-                  title: Text(
-                    "Remove Book",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  color:  Colors.blue,
-                ),
-                child: ListTile(
-                  leading: Icon(Icons.settings, color: Colors.white),
-                  title: Text(
-                    "Settings",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  color:Colors.blue,
-                ),
-                child: ListTile(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Notice(),
-                      ),
-                    );
-                  },
-                  leading: Icon(Icons.file_copy, color: Colors.white),
-                  title: Text(
-                    "Notice",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  color:Colors.blue,
-                ),
-                child: ListTile(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AdminBorrowedBooksScreen(),
-                      ),
-                    );
-                  },
-                  leading: Icon(Icons.file_copy_outlined, color: Colors.white),
-                  title: Text(
-                    "Records",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  color:  Colors.blue,
-                ),
-                child: ListTile(
-                  leading: Icon(Icons.logout,color: Colors.white),
-                  title: Text(
-                    "Log Out",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onTap: () async {
-                    await FirebaseAuth.instance.signOut();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LogInScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
 
 
 PreferredSizeWidget CustomAppbar(GlobalKey<ScaffoldState> scaffoldKey) {
   return AppBar(
-      backgroundColor: kblue_2,
+    backgroundColor: kblue_2,
 
-      leading: IconButton(
-        icon: Icon(Icons.menu, color: kwhite, size: 30,),
-        onPressed: () {
-          scaffoldKey.currentState!.openDrawer();
-        },
-      ),
+    leading: IconButton(
+      icon: Icon(Icons.menu, color: kwhite, size: 30,),
+      onPressed: () {
+        scaffoldKey.currentState!.openDrawer();
+      },
+    ),
   );
 }

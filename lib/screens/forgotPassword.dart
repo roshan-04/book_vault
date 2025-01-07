@@ -43,13 +43,31 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  String? _validateEmail(String? value) {
-    final emailRegex = RegExp(r'^[\w\.-]+@[\w-]+\.\w{2,3}(\.\w{2,3})?$');
-    if (value == null || !emailRegex.hasMatch(value)) {
-      return 'Please enter a valid email';
+  String? _validateEmail(String? email) {
+    if (email == null || email.isEmpty) {
+      return "Please enter an Email";
+    }
+    // Updated regular expression to allow alphanumeric characters, dots, and hyphens in local part
+    RegExp emailRegex = RegExp(r'^[a-zA-Z0-9._-]+@gec\.ac\.in$');
+    // Check if the email matches the required pattern
+    if (!emailRegex.hasMatch(email)) {
+      return 'Please enter a valid email.';
     }
     return null;
   }
+
+
+  //If the above _validateEmail doesnt work then try below one
+  // String? _validateEmail(String? email) {
+  //   if (email == null || email.isEmpty ) {
+  //     return "Please enter an Email";
+  //   }
+  //   RegExp emailRegex = RegExp(r'^[\w\.-]+@[\w-]+\.\w{2,3}(\.\w{2,3})?$');
+  //   if (!emailRegex.hasMatch(email)) {
+  //     return 'Please enter a valid email';
+  //   }
+  //   return null;
+  // }
 
   @override
   Widget build(BuildContext context) {
